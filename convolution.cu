@@ -34,10 +34,10 @@ int main(int argc, char **argv) {
     // TODO - Copy output image to host
 
     timer.Stop();
-
-    printf("Time elapsed = %g ms\n", timer.Elapsed());
+    printf("*** Time Elapsed: %g ms ***\n", timer.Elapsed());
 
     // TODO - Save output image
 
     // TODO - Free memory
+    return 0;
 }
