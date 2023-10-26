@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <gputimer.h>
+#include "gputimer.h"
 
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
 #include "lodepng.h"
 
-__global__ void convolution(int width, int height) {
+__global__ void convolution(unsigned char *input, unsigned char *output, int width, int height) {
     int index = threadIdx.x + blockIdx.x * blockDim.x;
 
     if (index < width) {
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     char* output_png = argv[2];
     int num_of_threads = atoi(argv[3]);
 
-    unsigned width height;
+    unsigned width, height;
 
 
     unsigned error;
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 
     error = lodepng_decode32_file(&temp_image, &width, &height, input_png);
     if (error) {
-        printf("error %u: %s", error, loadpng_error_text(error));
+        printf("error %u: %s", error, lodepng_error_text(error));
     }
 
 
