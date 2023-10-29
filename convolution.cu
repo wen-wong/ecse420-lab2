@@ -8,48 +8,49 @@
 #include "lodepng.h"
 #include "wm.h"
 
-__global__ void convolution(unsigned char *input, unsigned char *output, float *wm, unsigned width, unsigned height) {
-    unsigned long item_count = (width - 2) * (height - 2);
-    // printf("%f %f %f %f %f %f %f %f %f \n", *wm, *wm++, *wm++, *wm++, *wm++, *wm++, *wm++, *wm++, *wm++);
-    unsigned long op_per_thread = item_count / (blockDim.x);
+__global__ void convolution(unsigned char *input, unsigned char *output, float *wm, int width, int height) {
+    int item_count = (width - 2) * (height - 2);
+    int op_per_thread = item_count / (blockDim.x);
     if (item_count % (blockDim.x)) {
         op_per_thread++;
-        
     }
-    // printf("%d\n", op_per_thread);
-    // printf("op per thread: %d\n", threadIdx.x + (blockDim.x) * 0);
 
-    for(unsigned long op = 0; op < op_per_thread; op++) {
-        //int index = threadIdx.x + (blockDim.x) * op;
-        unsigned long index = threadIdx.x * op_per_thread + op;
-        if (index < 1000){
-            printf("index: %d\n", index);
+    for(int op = 0; op < op_per_thread; op++) {
+        int index = threadIdx.x * op_per_thread + op;
+        // int index = op * (blockDim.x) + threadIdx.x;
+        if (index >= item_count) {
+            return;
         }
-        if (index < item_count) {
-        // Implement convolution
-            unsigned long i = index / (width - 2);
-            unsigned long j = index % (width - 2);
+        // printf("index: %d\n", index);
+        int i = index / (width - 2);
+        int j = index % (width - 2);
 
-            // printf("%d %d\n", i, j);
+        if (!(1 <= i && i <= (width) - 1) && !(1 <= j && j <= (height) - 1)) {
+            return;
+        }
 
-            for(unsigned long ii = 0; ii <= 2; ii++) {
-                for(unsigned long jj = 0; jj <= 2; jj++) {
+        for(unsigned long ii = 0; ii <= 2; ii++) {
+            for(unsigned long jj = 0; jj <= 2; jj++) {
+                for(int k = 0; k <= 3; k++) {
+                    // output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
+                    // if (k == 3) {
+                    //     output[index * 4 + k] = 255;
+                    // } else {
+                    //     output[index * 4 + k] += input[index * 4 + k];
+                    // }
+                    output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
                 }
             }
-
-        } else {
-            break;
         }
     }
 }
 
-int main(int argc, char **argv) {
-    char* input_png = argv[1];
-    char* output_png = argv[2];
+int main(int argc, char *argv[]) {
+    char* input_filename = argv[1];
+    char* output_filename = argv[2];
     int num_of_threads = atoi(argv[3]);
 
     unsigned width, height;
-
 
     unsigned error;
     unsigned char *temp_image;
@@ -58,7 +59,7 @@ int main(int argc, char **argv) {
     unsigned char *input_image;
     unsigned char *output_image;
 
-    error = lodepng_decode32_file(&temp_image, &width, &height, input_png);
+    error = lodepng_decode32_file(&temp_image, &width, &height, input_filename);
     if (error) {
         printf("error %u: %s", error, lodepng_error_text(error));
     }
@@ -78,7 +79,7 @@ int main(int argc, char **argv) {
     GpuTimer timer;
     timer.Start();
 
-    convolution<<<1, 1024>>>(input_image, output_image, wm, width, height);
+    convolution<<<1, num_of_threads>>>(input_image, output_image, wm, (int) width, (int) height);
 
     cudaDeviceSynchronize();
 
@@ -91,7 +92,7 @@ int main(int argc, char **argv) {
     cudaMemcpy(temp_output, output_image, (width - 2) * (height - 2) * 4 * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
     // Save output image
-    lodepng_encode32_file(output_png, temp_output, width - 2, height - 2);
+    lodepng_encode32_file(output_filename, temp_output, width - 2, height - 2);
     
     // Free memory
     free(temp_image);
