@@ -31,7 +31,7 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
 
         for(int k = 0; k <= 3; k++) {
 
-            int sum = 0;    
+            float sum = 0;    
             for(unsigned long ii = 0; ii <= 2; ii++) {
                 for(unsigned long jj = 0; jj <= 2; jj++) {
                     // output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
@@ -40,20 +40,27 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
                     // } else {
                     //     output[index * 4 + k] += input[index * 4 + k];
                     // }
-                    sum += input[(i + ii) * width * 4 + (j + jj) * 4 + k] * wm[ii * 3 + jj] ;
+                    sum += 1.0 * input[(i + ii) * width * 4 + (j + jj) * 4 + k] * wm[ii * 3 + jj] ;
                     
                     
                 }
             }
-            if (sum < 0) {
-                sum = 0;
-            } else if (sum > 255) {
-                sum = 255;
+            int integer_sum = 0;
+
+            if (((int) (sum * 10)) % 10 >= 5) {     // Rounding .5 up, .4 down
+                integer_sum = sum + 1;
+            } else {
+                integer_sum = sum;
+            }
+            if (integer_sum < 0) {
+                integer_sum = 0;
+            } else if (integer_sum > 255) {
+                integer_sum = 255;
             }
             if (k == 3) {
-                sum  = 255;
+                integer_sum  = 255;
             }
-            output[index * 4 + k] = sum;
+            output[index * 4 + k] = integer_sum;
 
         }
         
