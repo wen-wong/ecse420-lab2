@@ -25,12 +25,13 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
         int i = index / (width - 2);
         int j = index % (width - 2);
 
-        if (!(1 <= i && i <= (width) - 1) && !(1 <= j && j <= (height) - 1)) {
-            return;
-        }
+        // if (!(1 <= i && i <= (width) - 1) && !(1 <= j && j <= (height) - 1)) {
+        //     return;
+        // }
 
         for(unsigned long ii = 0; ii <= 2; ii++) {
             for(unsigned long jj = 0; jj <= 2; jj++) {
+                int sum = 0;
                 for(int k = 0; k <= 3; k++) {
                     // output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
                     // if (k == 3) {
@@ -38,8 +39,14 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
                     // } else {
                     //     output[index * 4 + k] += input[index * 4 + k];
                     // }
-                    output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
+                    output[index * 4 + k] += input[(i + ii) * width * 4 + (j + jj) * 4 + k] * wm[ii * 3 + jj];
+                    if (output[index * 4 + k] < 0) {
+                        output[index * 4 + k] = 0;
+                    } else if (output[index * 4 + k] > 255) {
+                        output[index * 4 + k] = 255;
+                    }
                 }
+                
             }
         }
     }
