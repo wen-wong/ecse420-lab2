@@ -9,7 +9,10 @@
 #include "wm.h"
 
 __global__ void convolution(unsigned char *input, unsigned char *output, float *wm, int width, int height) {
+    // Number of items to be processed
     int item_count = (width - 2) * (height - 2);
+
+    // Number of operations per thread
     int op_per_thread = item_count / (blockDim.x);
     if (item_count % (blockDim.x)) {
         op_per_thread++;
@@ -17,53 +20,50 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
 
     for(int op = 0; op < op_per_thread; op++) {
         int index = threadIdx.x * op_per_thread + op;
-        // int index = op * (blockDim.x) + threadIdx.x;
+
+        // Check if index is out of bound
         if (index >= item_count) {
             return;
         }
-        // printf("index: %d\n", index);
+
         int i = index / (width - 2);
         int j = index % (width - 2);
 
-        // if (!(1 <= i && i <= (width) - 1) && !(1 <= j && j <= (height) - 1)) {
-        //     return;
-        // }
-
+        // For each RGBA value
         for(int k = 0; k <= 3; k++) {
 
-            float sum = 0;    
-            for(unsigned long ii = 0; ii <= 2; ii++) {
-                for(unsigned long jj = 0; jj <= 2; jj++) {
-                    // output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
-                    // if (k == 3) {
-                    //     output[index * 4 + k] = 255;
-                    // } else {
-                    //     output[index * 4 + k] += input[index * 4 + k];
-                    // }
-                    sum += 1.0 * input[(i + ii) * width * 4 + (j + jj) * 4 + k] * wm[ii * 3 + jj] ;
-                    
-                    
-                }
-            }
+            float sum = 0;
             int integer_sum = 0;
 
-            if (((int) (sum * 10)) % 10 >= 5) {     // Rounding .5 up, .4 down
-                integer_sum = sum + 1;
-            } else {
-                integer_sum = sum;
-            }
-            if (integer_sum < 0) {
-                integer_sum = 0;
-            } else if (integer_sum > 255) {
-                integer_sum = 255;
-            }
             if (k == 3) {
-                integer_sum  = 255;
-            }
-            output[index * 4 + k] = integer_sum;
+                integer_sum = 0;
+            } else {
 
+                // Convolution
+                for(unsigned long ii = 0; ii <= 2; ii++) {
+                    for(unsigned long jj = 0; jj <= 2; jj++) {
+                        sum += 1.0 * input[(i + ii) * width * 4 + (j + jj) * 4 + k] * wm[ii * 3 + jj] ;
+                    }
+                }
+
+                // Rounding float to integer
+                if (((int) (sum * 10)) % 10 >= 5) {
+                    integer_sum = sum + 1;
+                } else {
+                    integer_sum = sum;
+                }
+
+                // Clamping integer to [0, 255]
+                if (integer_sum < 0) {
+                    integer_sum = 0;
+                } else if (integer_sum > 255) {
+                    integer_sum = 255;
+                }
+            }
+
+            // Write to output
+            output[index * 4 + k] = integer_sum;
         }
-        
     }
 }
 
@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
     unsigned char *input_image;
     unsigned char *output_image;
 
+    // Load input image from file
     error = lodepng_decode32_file(&temp_image, &width, &height, input_filename);
     if (error) {
         printf("error %u: %s", error, lodepng_error_text(error));
@@ -92,7 +93,6 @@ int main(int argc, char *argv[]) {
     cudaMalloc((void **) &input_image, width * height * 4 * sizeof(unsigned char));
     cudaMalloc((void **) &output_image, (width - 2) * (height - 2) * 4 * sizeof(unsigned char));
     cudaMalloc((void **) &wm, 3 * 3 * sizeof(float));
-
 
     // Copy input image to device
     cudaMemcpy(input_image, temp_image, width * height * 4 * sizeof(unsigned char), cudaMemcpyHostToDevice);
