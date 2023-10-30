@@ -7,6 +7,22 @@
 #define ETA 0.0002
 #define G 0.75
 #define SIZE 4
+#define SIMULATION_HIT 1;
+
+void print_grid(float *u, int size) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            printf("%f", u[i * size + j]);
+            if (j != size - 1) {
+                printf(", ");
+            }
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    return;
+}
 
 void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {
     for (int i = 1; i <= size - 2; i++) {
@@ -27,7 +43,7 @@ void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {
     return;
 }
 
-void synthesis_boundary_elements(float *u, float *u1, float *u2, int size) {
+void synthesis_boundary_elements(float *u, int size) {
     for (int i = 1; i <= size - 2; i++) {
         u[i] = G * u[1 * size + i];
         u[(size - 1) * size + i] = G * u[(size - 2) * size + i];
@@ -38,7 +54,7 @@ void synthesis_boundary_elements(float *u, float *u1, float *u2, int size) {
     return;
 }
 
-void synthesis_corner_elements(float *u, float *u1, float *u2, int size) {
+void synthesis_corner_elements(float *u, int size) {
     u[0] = G * u[1 * size + 1];
     u[(size - 1) * size] = G * u[(size - 2) * size + 1];
     u[size - 1] = G * u[1 * size + (size - 2)];
@@ -48,12 +64,12 @@ void synthesis_corner_elements(float *u, float *u1, float *u2, int size) {
 }
 
 void synthesis(float * u, float *u1, float *u2, int size, int num_of_iterations, float *result) {
-    u1[(size / 2 ) * size + (size / 2)] = 1;
+    u1[(size / 2 ) * size + (size / 2)] = SIMULATION_HIT;
 
     for (int i = 0; i < num_of_iterations; i++) {
         synthesis_interior_elements(u, u1, u2, size);
-        synthesis_boundary_elements(u, u1, u2, size);
-        synthesis_corner_elements(u, u1, u2, size);
+        synthesis_boundary_elements(u, size);
+        synthesis_corner_elements(u, size);
 
         memcpy(u2, u1, sizeof(float) * size * size);
         memcpy(u1, u, sizeof(float) * size * size);
@@ -82,9 +98,6 @@ int main(int argc, char** argv) {
 
     float *result = (float*) malloc(sizeof(float) * num_of_iterations);
 
-    memcpy(u1, u, sizeof(float) * SIZE * SIZE);
-    memcpy(u2, u, sizeof(float) * SIZE * SIZE);
-
     CpuTimer timer;
     timer.Start();
 
@@ -102,6 +115,7 @@ int main(int argc, char** argv) {
     free(u);
     free(u1);
     free(u2);
+    free(result);
 
     return 0;
 }

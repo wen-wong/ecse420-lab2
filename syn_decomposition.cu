@@ -14,6 +14,15 @@ int main(int argc, char** argv) {
     int num_of_iterations = atoi(argv[1]);
 
     // TODO - Define the number of blocks and threads per block
+    // Allocate memory
+    float *u = (float*) malloc(sizeof(float) * SIZE * SIZE);
+    float *u1 = (float*) malloc(sizeof(float) * SIZE * SIZE);
+    float *u2 = (float*) malloc(sizeof(float) * SIZE * SIZE);
+
+    float *result = (float*) malloc(sizeof(float) * num_of_iterations);
+
+    memcpy(u1, u, sizeof(float) * SIZE * SIZE);
+    memcpy(u2, u, sizeof(float) * SIZE * SIZE);
 
     GpuTimer timer;
     timer.Start();
