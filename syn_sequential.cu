@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 #include "cputimer.h"
 
 #define P 0.5
@@ -8,21 +7,6 @@
 #define G 0.75
 #define SIZE 4
 #define SIMULATION_HIT 1;
-
-void print_grid(float *u, int size) {
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            printf("%f", u[i * size + j]);
-            if (j != size - 1) {
-                printf(", ");
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-
-    return;
-}
 
 void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {
     for (int i = 1; i <= size - 2; i++) {

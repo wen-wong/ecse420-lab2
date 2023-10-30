@@ -93,24 +93,24 @@ __global__ void synthesis_corner_elements(float *u, int size) {
     return;
 }
 
-void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, float *result, int num_of_elements) {
-    u1[(SIZE / 2 ) * SIZE + (SIZE / 2)] = 1;
+void synthesis(float *u, float *d_u, float *d_u1, float *d_u2, int size, int num_of_iterations, float *result, int num_of_elements) {
 
     GpuTimer timer;
     timer.Start();
 
     for (int i = 0; i < num_of_iterations; i++) {
-        synthesis_interior_elements<<<1, num_of_elements>>>(u, u1, u2, size);
+        synthesis_interior_elements<<<1, num_of_elements>>>(d_u, d_u1, d_u2, size);
         cudaDeviceSynchronize();
-        synthesis_boundary_elements<<<1, num_of_elements>>>(u, size);
+        synthesis_boundary_elements<<<1, num_of_elements>>>(d_u, size);
         cudaDeviceSynchronize();
-        synthesis_corner_elements<<<1, num_of_elements>>>(u, size);
+        synthesis_corner_elements<<<1, num_of_elements>>>(d_u, size);
         cudaDeviceSynchronize();
 
 
-        cudaMemcpy(u2, u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
-        cudaMemcpy(u1, u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(d_u2, d_u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(d_u1, d_u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
 
+        cudaMemcpy(u, d_u, sizeof(float) * size * size, cudaMemcpyDeviceToHost);
         result[i] = u[2 * size + 2];
     }
 
@@ -135,19 +135,29 @@ int main(int argc, char** argv) {
     int num_of_iterations = atoi(argv[1]);
     
     // Allocate memory
-    float *u, *u1, *u2, *result;
-    cudaMallocManaged((void**) &u, sizeof(float) * SIZE * SIZE);
-    cudaMallocManaged((void**) &u1, sizeof(float) * SIZE * SIZE);
-    cudaMallocManaged((void**) &u2, sizeof(float) * SIZE * SIZE);
-    cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
+    float *u, *u1, *result;
+    float *d_u, *d_u1, *d_u2;
+    
+    u = (float*) malloc(sizeof(float) * SIZE * SIZE);
+    u1 = (float*) malloc(sizeof(float) * SIZE * SIZE);
+    result = (float*) malloc(sizeof(float) * num_of_iterations);
 
-    synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE);
+    cudaMalloc((void**) &d_u, sizeof(float) * SIZE * SIZE);
+    cudaMalloc((void**) &d_u1, sizeof(float) * SIZE * SIZE);
+    cudaMalloc((void**) &d_u2, sizeof(float) * SIZE * SIZE);
+
+    u1[(SIZE / 2) * SIZE + (SIZE / 2)] = SIMULATION_HIT;
+    cudaMemcpy(d_u1, u1, sizeof(float) * SIZE * SIZE, cudaMemcpyHostToDevice);
+
+    synthesis(u, d_u, d_u1, d_u2, SIZE, num_of_iterations, result, SIZE * SIZE);
 
     // Free memory
-    cudaFree(u);
-    cudaFree(u1);
-    cudaFree(u2);
-    cudaFree(result);
+    free(u);
+    free(u1);
+    cudaFree(d_u);
+    cudaFree(d_u1);
+    cudaFree(d_u2);
+    free(result);
 
     return 0;
 }

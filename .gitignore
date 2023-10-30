@@ -4,3 +4,5 @@
 **/*.txt
 
 .vscode/
+
+.DS_Store
