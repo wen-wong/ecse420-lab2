@@ -17,7 +17,12 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
 
     for(int op = 0; op < op_per_thread; op++) {
         int index = threadIdx.x * op_per_thread + op;
-        // int index = op * (blockDim.x) + threadIdx.x;
+        // if (threadIdx.x == 0) {
+        //     printf("op: %d, index: %d\n", op, index);
+        // } else {
+        //     break;
+        // }
+
         if (index >= item_count) {
             return;
         }
@@ -25,12 +30,15 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
         int i = index / (width - 2);
         int j = index % (width - 2);
 
-        if (!(1 <= i && i <= (width) - 1) && !(1 <= j && j <= (height) - 1)) {
-            return;
+        if (!(i >= 1 && i <= (height) - 1) || !(j >= 1 && j <= (width) - 1)) {
+            continue;
         }
 
-        for(unsigned long ii = 0; ii <= 2; ii++) {
-            for(unsigned long jj = 0; jj <= 2; jj++) {
+        float r = 0, g = 0, b = 0, a = 0;
+
+        for(int ii = 0; ii <= 2; ii++) {
+            for(int jj = 0; jj <= 2; jj++) {
+                // printf("i: %d, j: %d, ii: %d, jj: %d\n", i, j, ii, jj);
                 for(int k = 0; k <= 3; k++) {
                     // output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
                     // if (k == 3) {
@@ -38,10 +46,22 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
                     // } else {
                     //     output[index * 4 + k] += input[index * 4 + k];
                     // }
-                    output[index * 4 + k] += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + k] * wm[ii * 3 + jj];
+                    // output[index * 4 + k] 
+                    r += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4] * wm[ii * 3 + jj];
+                    g += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + 1] * wm[ii * 3 + jj];
+                    b += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + 2] * wm[ii * 3 + jj];
+                    a += input[(i + ii - 1) * width * 4 + (j + jj - 1) * 4 + 3] * wm[ii * 3 + jj];
+                    // if (index == 10000) {
+                    //     printf("[%d][%d] k: %d\n", (i + ii - 1) + (i * width), (j + jj - 1), k);
+                    // }
                 }
             }
         }
+
+        output[index * 4] = r;
+        output[index * 4 + 1] = g;
+        output[index * 4 + 2] = b;
+        output[index * 4 + 3] = a;
     }
 }
 
