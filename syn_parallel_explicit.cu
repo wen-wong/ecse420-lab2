@@ -50,21 +50,13 @@ __global__ void synthesis_boundary_elements(float *u, int size) {
     int j = index % size;
 
     if (i == 0 && j != 0 && j != size - 1) {
-
         u[i * size + j] = G * u[1 * size + j];
-
     } else if (i == size - 1 && j != 0 && j != size - 1) {
-
         u[(size - 1) * size + j] = G * u[(size - 2) * size + j];
-
     } else if (i != 0 && i != size - 1 && j == 0) {
-
         u[i * size] = G * u[i * size + 1];
-
     } else if (i != 0 && i != size - 1 && j == size - 1) {
-
         u[i * size + (size - 1)] = G * u[i * size + (size - 2)];
-
     }
 
     return;
