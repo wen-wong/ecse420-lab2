@@ -151,6 +151,9 @@ void print_result(float *result, int num_of_iterations) {
 
 int main(int argc, char** argv) {
     int num_of_iterations = atoi(argv[1]);
+
+    int num_of_blocks = 0;
+    int num_of_threads = 0;
     
     // Allocate memory
     float *u, *u1, *u2, *result;
@@ -159,7 +162,7 @@ int main(int argc, char** argv) {
     cudaMallocManaged((void**) &u2, sizeof(float) * SIZE * SIZE);
     cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
 
-    synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE);
+    synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE, num_blocks, num_of_threads);
 
     // Free memory
     cudaFree(u);
