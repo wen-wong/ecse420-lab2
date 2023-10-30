@@ -93,6 +93,14 @@ __global__ void synthesis_corner_elements(float *u, int size) {
     return;
 }
 
+void print_result(float *result, int num_of_iterations) {
+    for (int i = 0; i < num_of_iterations; i++) {
+        printf("[%d]\t%f\n", i, result[i]);
+    }
+
+    return;
+}
+
 void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, float *result, int num_of_elements) {
     u1[(SIZE / 2 ) * SIZE + (SIZE / 2)] = 1;
 
@@ -108,10 +116,14 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
         cudaDeviceSynchronize();
 
 
-        cudaMemcpy(u2, u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
-        cudaMemcpy(u1, u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        // cudaMemcpy(u2, u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        // cudaMemcpy(u1, u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        
+        result[i] = u[(SIZE / 2 ) * SIZE + (SIZE / 2)];
 
-        result[i] = u[2 * size + 2];
+        u1 = u;
+        u2 = u1;
+        u = u2;
     }
 
     timer.Stop();
@@ -119,14 +131,6 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
     print_result(result, num_of_iterations);
 
     printf("*** Time Elapsed: %f ms ***\n", timer.Elapsed());
-
-    return;
-}
-
-void print_result(float *result, int num_of_iterations) {
-    for (int i = 0; i < num_of_iterations; i++) {
-        printf("[%d]\t%f\n", i, result[i]);
-    }
 
     return;
 }
@@ -140,6 +144,11 @@ int main(int argc, char** argv) {
     cudaMallocManaged((void**) &u1, sizeof(float) * SIZE * SIZE);
     cudaMallocManaged((void**) &u2, sizeof(float) * SIZE * SIZE);
     cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
+
+    cudaMemset(u, 0, sizeof(float) * SIZE * SIZE);
+    cudaMemset(u1, 0, sizeof(float) * SIZE * SIZE);
+    cudaMemset(u2, 0, sizeof(float) * SIZE * SIZE);
+    cudaMemset(result, 0, sizeof(float) * SIZE * SIZE);
 
     synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE);
 

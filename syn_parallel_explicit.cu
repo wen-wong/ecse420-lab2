@@ -93,6 +93,15 @@ __global__ void synthesis_corner_elements(float *u, int size) {
     return;
 }
 
+
+void print_result(float *result, int num_of_iterations) {
+    for (int i = 0; i < num_of_iterations; i++) {
+        printf("[%d]\t%f\n", i, result[i]);
+    }
+
+    return;
+}
+
 void synthesis(float *u, float *d_u, float *d_u1, float *d_u2, int size, int num_of_iterations, float *result, int num_of_elements) {
 
     GpuTimer timer;
@@ -119,14 +128,6 @@ void synthesis(float *u, float *d_u, float *d_u1, float *d_u2, int size, int num
     print_result(result, num_of_iterations);
 
     printf("*** Time Elapsed: %f ms ***\n", timer.Elapsed());
-
-    return;
-}
-
-void print_result(float *result, int num_of_iterations) {
-    for (int i = 0; i < num_of_iterations; i++) {
-        printf("[%d]\t%f\n", i, result[i]);
-    }
 
     return;
 }

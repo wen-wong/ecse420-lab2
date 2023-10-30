@@ -39,10 +39,10 @@ void synthesis_boundary_elements(float *u, int size) {
 }
 
 void synthesis_corner_elements(float *u, int size) {
-    u[0] = G * u[1 * size + 1];
-    u[(size - 1) * size] = G * u[(size - 2) * size + 1];
-    u[size - 1] = G * u[1 * size + (size - 2)];
-    u[(size - 1) * size + (size - 1)] = G * u[(size - 2) * size + (size - 2)];
+    u[0] = G * u[1 * size + 0];
+    u[(size - 1) * size] = G * u[(size - 2) * size + 0];
+    u[size - 1] = G * u[0 * size + (size - 2)];
+    u[(size - 1) * size + (size - 1)] = G * u[(size - 1) * size + (size - 2)];
 
     return;
 }
@@ -51,14 +51,26 @@ void synthesis(float * u, float *u1, float *u2, int size, int num_of_iterations,
     u1[(size / 2 ) * size + (size / 2)] = SIMULATION_HIT;
 
     for (int i = 0; i < num_of_iterations; i++) {
+        
+        printf("before: %f\n", u[(size / 2 ) * size + (size / 2)]);
         synthesis_interior_elements(u, u1, u2, size);
+        
+        printf("after interior: %f\n", u[(size / 2 ) * size + (size / 2)]);
         synthesis_boundary_elements(u, size);
+        
+        printf("synthesis boundary: %f\n", u[(size / 2 ) * size + (size / 2)]);
         synthesis_corner_elements(u, size);
 
         memcpy(u2, u1, sizeof(float) * size * size);
         memcpy(u1, u, sizeof(float) * size * size);
+        
 
-        result[i] = u[2 * size + 2];
+        result[i] = u[(size / 2 ) * size + (size / 2)];
+        printf("synthesis corner: %f\n", u[(size / 2 ) * size + (size / 2)]);
+
+        // u2 = u1;
+        // u1 = u;
+        // u = u2;
     }
 
     return;
@@ -76,15 +88,16 @@ int main(int argc, char** argv) {
     int num_of_iterations = atoi(argv[1]);
 
     // Allocate memory
-    float *u = (float*) malloc(sizeof(float) * SIZE * SIZE);
-    float *u1 = (float*) malloc(sizeof(float) * SIZE * SIZE);
-    float *u2 = (float*) malloc(sizeof(float) * SIZE * SIZE);
+    float *u = (float*) calloc(SIZE * SIZE, sizeof(float));
+    float *u1 = (float*) calloc(SIZE * SIZE, sizeof(float));
+    float *u2 = (float*) calloc(SIZE * SIZE, sizeof(float));
 
-    float *result = (float*) malloc(sizeof(float) * num_of_iterations);
+    float *result = (float*) calloc(num_of_iterations, sizeof(float));
 
     CpuTimer timer;
     timer.Start();
 
+    printf("started with : %f\n", u[(SIZE / 2 ) * SIZE + (SIZE / 2)]);
     // Run the algorithm
     synthesis(u, u1, u2, SIZE, num_of_iterations, result);
 
