@@ -2,3 +2,5 @@
 **/*.exp
 **/*.lib
 **/*.txt
+
+.vscode/
