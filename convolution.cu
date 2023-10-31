@@ -36,7 +36,7 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
             int integer_sum = 0;
 
             if (k == 3) {
-                integer_sum = 0;
+                integer_sum = 255;
             } else {
 
                 // Convolution
