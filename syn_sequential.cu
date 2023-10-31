@@ -47,30 +47,29 @@ void synthesis_corner_elements(float *u, int size) {
     return;
 }
 
+void swap(float **a, float **b) {
+    float *temp = *a;
+    *a = *b;
+    *b = temp;
+
+    return;
+}
+
 void synthesis(float * u, float *u1, float *u2, int size, int num_of_iterations, float *result) {
     u1[(size / 2 ) * size + (size / 2)] = SIMULATION_HIT;
 
     for (int i = 0; i < num_of_iterations; i++) {
         
-        printf("before: %f\n", u[(size / 2 ) * size + (size / 2)]);
         synthesis_interior_elements(u, u1, u2, size);
         
-        printf("after interior: %f\n", u[(size / 2 ) * size + (size / 2)]);
         synthesis_boundary_elements(u, size);
         
-        printf("synthesis boundary: %f\n", u[(size / 2 ) * size + (size / 2)]);
         synthesis_corner_elements(u, size);
 
-        memcpy(u2, u1, sizeof(float) * size * size);
-        memcpy(u1, u, sizeof(float) * size * size);
-        
-
         result[i] = u[(size / 2 ) * size + (size / 2)];
-        printf("synthesis corner: %f\n", u[(size / 2 ) * size + (size / 2)]);
-
-        // u2 = u1;
-        // u1 = u;
-        // u = u2;
+        
+        swap(&u2, &u1);
+        swap(&u1, &u);
     }
 
     return;
@@ -97,7 +96,6 @@ int main(int argc, char** argv) {
     CpuTimer timer;
     timer.Start();
 
-    printf("started with : %f\n", u[(SIZE / 2 ) * SIZE + (SIZE / 2)]);
     // Run the algorithm
     synthesis(u, u1, u2, SIZE, num_of_iterations, result);
 

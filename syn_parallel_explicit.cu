@@ -94,6 +94,14 @@ void print_result(float *result, int num_of_iterations) {
     return;
 }
 
+void swap(float **a, float **b) {
+    float *temp = *a;
+    *a = *b;
+    *b = temp;
+
+    return;
+}
+
 void synthesis(float *u, float *d_u, float *d_u1, float *d_u2, int size, int num_of_iterations, float *result, int num_of_elements) {
 
     GpuTimer timer;
@@ -108,18 +116,22 @@ void synthesis(float *u, float *d_u, float *d_u1, float *d_u2, int size, int num
         cudaDeviceSynchronize();
 
 
-        cudaMemcpy(d_u2, d_u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
-        cudaMemcpy(d_u1, d_u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        // cudaMemcpy(d_u2, d_u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+        // cudaMemcpy(d_u1, d_u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
+
 
         cudaMemcpy(u, d_u, sizeof(float) * size * size, cudaMemcpyDeviceToHost);
         result[i] = u[2 * size + 2];
+        
+        swap(&d_u2, &d_u1);
+        swap(&d_u1, &d_u);
     }
 
     timer.Stop();
     double elapsed = timer.Elapsed();
     print_result(result, num_of_iterations);
 
-    printf("*** Time Elapsed: %f ms ***\n", timer.Elapsed());
+    printf("\n*** Time Elapsed: %f ms ***\n", timer.Elapsed());
 
     return;
 }

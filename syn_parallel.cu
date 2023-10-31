@@ -93,8 +93,20 @@ void print_result(float *result, int num_of_iterations) {
     return;
 }
 
+void swap(float **a, float **b) {
+    float *temp = *a;
+    *a = *b;
+    *b = temp;
+
+    return;
+}
+
 void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, float *result, int num_of_elements) {
-    u1[(SIZE / 2 ) * SIZE + (SIZE / 2)] = 1;
+    u1[(SIZE / 2 ) * SIZE + (SIZE / 2)] = SIMULATION_HIT;
+
+    float *temp;
+
+    cudaMallocManaged((void**) &temp, sizeof(float) * SIZE * SIZE);
 
     GpuTimer timer;
     timer.Start();
@@ -106,16 +118,12 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
         cudaDeviceSynchronize();
         synthesis_corner_elements<<<1, num_of_elements>>>(u, size);
         cudaDeviceSynchronize();
-
-
-        // cudaMemcpy(u2, u1, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
-        // cudaMemcpy(u1, u, sizeof(float) * size * size, cudaMemcpyDeviceToDevice);
         
-        result[i] = u[(SIZE / 2 ) * SIZE + (SIZE / 2)];
+        // result[i] = u[(SIZE / 2 ) * SIZE + (SIZE / 2)];
+        printf("[%d]\t%f\n", i, u[(SIZE / 2 ) * SIZE + (SIZE / 2)]);
 
-        u1 = u;
-        u2 = u1;
-        u = u2;
+        swap(&u2, &u1);
+        swap(&u1, &u);
     }
 
     timer.Stop();
