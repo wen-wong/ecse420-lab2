@@ -122,10 +122,12 @@ void swap(float **a, float **b) {
 void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, float *result, int num_of_elements, int num_of_blocks, int num_of_threads) {
     u1[(SIZE / 2 ) * SIZE + (SIZE / 2)] = 1;
 
-    GpuTimer timer;
-    timer.Start();
+    double elapsed = 0;
+
 
     for (int i = 0; i < num_of_iterations; i++) {
+        GpuTimer timer;
+        timer.Start();
         synthesis_interior_elements<<<num_of_blocks, num_of_threads>>>(u, u1, u2, size, num_of_elements);
         cudaDeviceSynchronize();
         synthesis_boundary_elements<<<num_of_blocks, num_of_threads>>>(u, size, num_of_elements);
@@ -133,15 +135,16 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
         synthesis_corner_elements<<<num_of_blocks, num_of_threads>>>(u, size, num_of_elements);
         cudaDeviceSynchronize();
 
+        timer.Stop();
+        elapsed += timer.Elapsed();
+
         result[i] = u[(size / 2) * size + (size / 2)];
 
         swap(&u2, &u1);
         swap(&u1, &u);
     }
 
-    timer.Stop();
-    double elapsed = timer.Elapsed();
-    print_result(result, num_of_iterations);
+    // print_result(result, num_of_iterations);
 
     printf("*** Time Elapsed: %f ms ***\n", elapsed);
 
@@ -161,7 +164,7 @@ int main(int argc, char** argv) {
     cudaMallocManaged((void**) &u2, sizeof(float) * SIZE * SIZE);
     cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
 
-    synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE, num_of_blocks, num_of_threads);
+    synthesis<<<1, 1>>>(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE, num_of_blocks, num_of_threads);
 
     // Free memory
     cudaFree(u);

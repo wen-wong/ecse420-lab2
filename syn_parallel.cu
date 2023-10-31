@@ -108,29 +108,29 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
 
     cudaMallocManaged((void**) &temp, sizeof(float) * SIZE * SIZE);
 
-    GpuTimer timer;
-    timer.Start();
+    double elapsed = 0.0;
 
     for (int i = 0; i < num_of_iterations; i++) {
+        GpuTimer timer;
+        timer.Start();
         synthesis_interior_elements<<<1, num_of_elements>>>(u, u1, u2, size);
         cudaDeviceSynchronize();
         synthesis_boundary_elements<<<1, num_of_elements>>>(u, size);
         cudaDeviceSynchronize();
         synthesis_corner_elements<<<1, num_of_elements>>>(u, size);
         cudaDeviceSynchronize();
+        timer.Stop();
+        elapsed += timer.Elapsed();
         
-        // result[i] = u[(SIZE / 2 ) * SIZE + (SIZE / 2)];
-        printf("[%d]\t%f\n", i, u[(SIZE / 2 ) * SIZE + (SIZE / 2)]);
+        result[i] = u[(SIZE / 2 ) * SIZE + (SIZE / 2)];
 
         swap(&u2, &u1);
         swap(&u1, &u);
     }
 
-    timer.Stop();
-    double elapsed = timer.Elapsed();
     print_result(result, num_of_iterations);
 
-    printf("*** Time Elapsed: %f ms ***\n", timer.Elapsed());
+    printf("*** Time Elapsed: %f ms ***\n", elapsed);
 
     return;
 }

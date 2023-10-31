@@ -5,7 +5,7 @@
 #define P 0.5
 #define ETA 0.0002
 #define G 0.75
-#define SIZE 4
+#define SIZE 512
 #define SIMULATION_HIT 1;
 
 void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {
@@ -55,10 +55,22 @@ void swap(float **a, float **b) {
     return;
 }
 
+void print_result(float *result, int num_of_iterations) {
+    for (int i = 0; i < num_of_iterations; i++) {
+        printf("[%d]\t%f\n", i, result[i]);
+    }
+
+    return;
+}
+
 void synthesis(float * u, float *u1, float *u2, int size, int num_of_iterations, float *result) {
     u1[(size / 2 ) * size + (size / 2)] = SIMULATION_HIT;
 
+    double elapsed = 0;
+
     for (int i = 0; i < num_of_iterations; i++) {
+        CpuTimer timer;
+        timer.Start();
         
         synthesis_interior_elements(u, u1, u2, size);
         
@@ -66,19 +78,18 @@ void synthesis(float * u, float *u1, float *u2, int size, int num_of_iterations,
         
         synthesis_corner_elements(u, size);
 
+        timer.Stop();
+        elapsed += timer.Elapsed();
+
         result[i] = u[(size / 2 ) * size + (size / 2)];
         
         swap(&u2, &u1);
         swap(&u1, &u);
     }
 
-    return;
-}
+    print_result(result, num_of_iterations);
 
-void print_result(float *result, int num_of_iterations) {
-    for (int i = 0; i < num_of_iterations; i++) {
-        printf("[%d]\t%f\n", i, result[i]);
-    }
+    printf("\n*** Time Elapsed: %f ms ***\n", elapsed);
 
     return;
 }
@@ -93,18 +104,8 @@ int main(int argc, char** argv) {
 
     float *result = (float*) calloc(num_of_iterations, sizeof(float));
 
-    CpuTimer timer;
-    timer.Start();
-
     // Run the algorithm
     synthesis(u, u1, u2, SIZE, num_of_iterations, result);
-
-    timer.Stop();
-    double elapsed = timer.Elapsed();
-
-    print_result(result, num_of_iterations);
-
-    printf("\n*** Time Elapsed: %f ms ***\n", elapsed);
 
     // Free memory
     free(u);
