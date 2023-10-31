@@ -27,7 +27,7 @@ __global__ void synthesis_interior_elements(float *u, float *u1, float *u2, int 
         int j = index % size;
 
         if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
-            break;       // TODO: not sure if we need  to change this to continue
+            continue;       // TODO: not sure if we need  to change this to continue
         }
 
         u[i * size + j] = 
