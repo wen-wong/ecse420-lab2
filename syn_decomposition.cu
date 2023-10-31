@@ -27,7 +27,7 @@ __global__ void synthesis_interior_elements(float *u, float *u1, float *u2, int 
         int j = index % size;
 
         if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
-            return;
+            break;       // TODO: not sure if we need  to change this to continue
         }
 
         u[i * size + j] = 
@@ -133,7 +133,7 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
         synthesis_corner_elements<<<num_of_blocks, num_of_threads>>>(u, size, num_of_elements);
         cudaDeviceSynchronize();
 
-        result[i] = u[2 * size + 2];
+        result[i] = u[(size / 2) * size + (size / 2)];
 
         swap(&u2, &u1);
         swap(&u1, &u);
