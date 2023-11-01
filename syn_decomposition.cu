@@ -27,7 +27,7 @@ __global__ void synthesis_interior_elements(float *u, float *u1, float *u2, int 
         int j = index % size;
 
         if (i == 0 || i == size - 1 || j == 0 || j == size - 1) {
-            continue;       // TODO: not sure if we need  to change this to continue
+            continue;
         }
 
         u[i * size + j] = 
@@ -144,9 +144,9 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
         swap(&u1, &u);
     }
 
-    // print_result(result, num_of_iterations);
+    print_result(result, num_of_iterations);
 
-    printf("*** Time Elapsed: %f ms ***\n", elapsed);
+    printf("\n*** Time Elapsed: %f ms ***\n", elapsed);
 
     return;
 }
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     cudaMallocManaged((void**) &u2, sizeof(float) * SIZE * SIZE);
     cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
 
-    synthesis<<<1, 1>>>(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE, num_of_blocks, num_of_threads);
+    synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE, num_of_blocks, num_of_threads);
 
     // Free memory
     cudaFree(u);

@@ -130,7 +130,7 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
 
     print_result(result, num_of_iterations);
 
-    printf("*** Time Elapsed: %f ms ***\n", elapsed);
+    printf("\n*** Time Elapsed: %f ms ***\n", elapsed);
 
     return;
 }
