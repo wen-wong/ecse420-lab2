@@ -135,6 +135,9 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
 
     printf("*** Time Elapsed: %f ms ***\n", elapsed);
 
+    free(out);
+    free(u_temp);
+
     return;
 }
 
@@ -146,12 +149,12 @@ int main(int argc, char** argv) {
     cudaMalloc((void**) &u, sizeof(float) * SIZE * SIZE);
     cudaMalloc((void**) &u1, sizeof(float) * SIZE * SIZE);
     cudaMalloc((void**) &u2, sizeof(float) * SIZE * SIZE);
-    cudaMalloc((void**) &result, sizeof(float) * num_of_iterations);
+    // cudaMalloc((void**) &result, sizeof(float) * num_of_iterations);
+    result = (float *) calloc(num_of_iterations, sizeof(float));
 
     cudaMemset(u, 0, sizeof(float) * SIZE * SIZE);
-    cudaMemset(u1, 0, sizeof(float) * SIZE * SIZE);
     cudaMemset(u2, 0, sizeof(float) * SIZE * SIZE);
-    cudaMemset(result, 0, sizeof(float) * SIZE * SIZE);
+    // cudaMemset(result, 0, sizeof(float) * SIZE * SIZE);
 
     synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE);
 
@@ -159,7 +162,7 @@ int main(int argc, char** argv) {
     cudaFree(u);
     cudaFree(u1);
     cudaFree(u2);
-    cudaFree(result);
+    free(result);
 
     return 0;
 }

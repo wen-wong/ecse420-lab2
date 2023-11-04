@@ -5,7 +5,7 @@
 #define P 0.5
 #define ETA 0.0002
 #define G 0.75
-#define SIZE 512
+#define SIZE 4
 #define SIMULATION_HIT 1;
 
 void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {

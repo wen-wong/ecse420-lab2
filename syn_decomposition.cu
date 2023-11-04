@@ -120,7 +120,12 @@ void swap(float **a, float **b) {
 }
 
 void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, float *result, int num_of_elements, int num_of_blocks, int num_of_threads) {
-    u1[(SIZE / 2 ) * SIZE + (SIZE / 2)] = 1;
+    float* u_temp = (float*) malloc(sizeof(float) * size * size);
+    u_temp[(SIZE / 2 ) * SIZE + (SIZE / 2)] = SIMULATION_HIT;
+
+    float* out = (float*) malloc(sizeof(float) * size * size);
+
+    cudaMemcpy(u1, u_temp, sizeof(float) * size * size, cudaMemcpyHostToDevice);
 
     double elapsed = 0;
 
@@ -138,7 +143,9 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
         timer.Stop();
         elapsed += timer.Elapsed();
 
-        result[i] = u[(size / 2) * size + (size / 2)];
+        cudaMemcpy(out, u, sizeof(float) * size * size, cudaMemcpyDeviceToHost);
+        
+        result[i] = out[(SIZE / 2 ) * SIZE + (SIZE / 2)];
 
         swap(&u2, &u1);
         swap(&u1, &u);
@@ -148,21 +155,28 @@ void synthesis(float *u, float *u1, float *u2, int size, int num_of_iterations, 
 
     printf("\n*** Time Elapsed: %f ms ***\n", elapsed);
 
+    free(out);
+    free(u_temp);
+
     return;
 }
 
 int main(int argc, char** argv) {
     int num_of_iterations = atoi(argv[1]);
 
-    int num_of_blocks = 16;
+    int num_of_blocks = 1024;
     int num_of_threads = 1024;
     
     // Allocate memory
     float *u, *u1, *u2, *result;
-    cudaMallocManaged((void**) &u, sizeof(float) * SIZE * SIZE);
-    cudaMallocManaged((void**) &u1, sizeof(float) * SIZE * SIZE);
-    cudaMallocManaged((void**) &u2, sizeof(float) * SIZE * SIZE);
-    cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
+    cudaMalloc((void**) &u, sizeof(float) * SIZE * SIZE);
+    cudaMalloc((void**) &u1, sizeof(float) * SIZE * SIZE);
+    cudaMalloc((void**) &u2, sizeof(float) * SIZE * SIZE);
+    // cudaMallocManaged((void**) &result, sizeof(float) * num_of_iterations);
+    result = (float *) calloc(num_of_iterations, sizeof(float));
+
+    cudaMemset(u, 0, sizeof(float) * SIZE * SIZE);
+    cudaMemset(u2, 0, sizeof(float) * SIZE * SIZE);
 
     synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE, num_of_blocks, num_of_threads);
 
@@ -170,7 +184,7 @@ int main(int argc, char** argv) {
     cudaFree(u);
     cudaFree(u1);
     cudaFree(u2);
-    cudaFree(result);
+    free(result);
 
     return 0;
 }
