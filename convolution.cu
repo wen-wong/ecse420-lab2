@@ -35,6 +35,7 @@ __global__ void convolution(unsigned char *input, unsigned char *output, float *
             float sum = 0;
             int integer_sum = 0;
 
+            // If alpha, set to 255
             if (k == 3) {
                 integer_sum = 255;
             } else {
@@ -121,6 +122,7 @@ int main(int argc, char *argv[]) {
     free(temp_output);
     cudaFree(input_image);
     cudaFree(output_image);
+    cudaFree(wm);
     
     return 0;
 }
