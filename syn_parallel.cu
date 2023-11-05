@@ -175,12 +175,10 @@ int main(int argc, char** argv) {
     cudaMalloc((void**) &u, sizeof(float) * SIZE * SIZE);
     cudaMalloc((void**) &u1, sizeof(float) * SIZE * SIZE);
     cudaMalloc((void**) &u2, sizeof(float) * SIZE * SIZE);
-    // cudaMalloc((void**) &result, sizeof(float) * num_of_iterations);
     result = (float *) calloc(num_of_iterations, sizeof(float));
 
     cudaMemset(u, 0, sizeof(float) * SIZE * SIZE);
     cudaMemset(u2, 0, sizeof(float) * SIZE * SIZE);
-    // cudaMemset(result, 0, sizeof(float) * SIZE * SIZE);
 
     synthesis(u, u1, u2, SIZE, num_of_iterations, result, SIZE * SIZE);
 
