@@ -8,6 +8,7 @@
 #define SIZE 4
 #define SIMULATION_HIT 1;
 
+// Apply the synthesis algorithm to the interior elements of the grid
 void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {
     for (int i = 1; i <= size - 2; i++) {
         for (int j = 1; j <= size - 2; j++) {
@@ -27,6 +28,7 @@ void synthesis_interior_elements(float *u, float *u1, float *u2, int size) {
     return;
 }
 
+// Apply the synthesis algorithm to the boundary elements of the grid
 void synthesis_boundary_elements(float *u, int size) {
     for (int i = 1; i <= size - 2; i++) {
         u[i] = G * u[1 * size + i];
@@ -38,6 +40,7 @@ void synthesis_boundary_elements(float *u, int size) {
     return;
 }
 
+// Apply the synthesis algorithm to the corner elements of the grid
 void synthesis_corner_elements(float *u, int size) {
     u[0] = G * u[1 * size + 0];
     u[(size - 1) * size] = G * u[(size - 2) * size + 0];
@@ -47,6 +50,7 @@ void synthesis_corner_elements(float *u, int size) {
     return;
 }
 
+// Swap the two pointers
 void swap(float **a, float **b) {
     float *temp = *a;
     *a = *b;
@@ -55,6 +59,7 @@ void swap(float **a, float **b) {
     return;
 }
 
+// Print the result of each iteration in position (size / 2, size / 2)
 void print_result(float *result, int num_of_iterations) {
     for (int i = 0; i < num_of_iterations; i++) {
         printf("[%d]\t%f\n", i, result[i]);
@@ -63,7 +68,9 @@ void print_result(float *result, int num_of_iterations) {
     return;
 }
 
+// Global synthesis function
 void synthesis(float * u, float *u1, float *u2, int size, int num_of_iterations, float *result) {
+    // Initialize hit on the center of the grid
     u1[(size / 2 ) * size + (size / 2)] = SIMULATION_HIT;
 
     double elapsed = 0;
